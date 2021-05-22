@@ -29,10 +29,9 @@
  */
 package com.raywenderlich.kotlin.coroutines.ui.movies
 
+import android.util.Log
 import com.raywenderlich.kotlin.coroutines.domain.repository.MovieRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -42,13 +41,18 @@ class MoviesPresenterImpl(private val movieRepository: MovieRepository) : Movies
 
     private lateinit var moviesView: MoviesView
 
+    private var parentJob = Job()
+
     override fun setView(moviesView: MoviesView) {
         this.moviesView = moviesView
     }
 
     override fun getData() {
         launch {
+            delay(500)
             val result = movieRepository.getMovies()
+
+            Log.d("TestCoroutine", "Still Alive")
             if (result.value != null && result.value.isNotEmpty()) {
                 moviesView.showMovies(result.value)
             } else if (result.throwable!=null) {
@@ -57,10 +61,20 @@ class MoviesPresenterImpl(private val movieRepository: MovieRepository) : Movies
         }
     }
 
+    override fun start() {
+        if (!parentJob.isActive) {
+            parentJob = Job()
+        }
+    }
+
+    override fun stop() {
+        parentJob.cancel()
+    }
+
     private fun handleError(throwable: Throwable) {
         moviesView.showError(throwable)
     }
 
     override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main
+        get() = Dispatchers.Main + parentJob
 }

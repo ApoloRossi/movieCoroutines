@@ -48,7 +48,7 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
     initUi()
 
     presenter.setView(this)
-    presenter.getData()
+
   }
 
   private fun initUi() {
@@ -65,5 +65,16 @@ class MoviesActivity : AppCompatActivity(), MoviesView {
   override fun showError(throwable: Throwable) {
     swipeToRefresh.isRefreshing = false
     // handle error
+  }
+
+  override fun onStart() {
+    super.onStart()
+    presenter.start()
+    presenter.getData()
+  }
+
+  override fun onStop() {
+    presenter.stop()
+    super.onStop()
   }
 }
